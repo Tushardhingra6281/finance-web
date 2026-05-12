@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Company List</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: radial-gradient(ellipse at top, #1e293b 0%, #0f172a 40%, #020617 100%);
+            color: #e2e8f0;
+            font-family: 'Inter', Arial, sans-serif;
+            padding: 30px;
+            min-height: 100vh;
+            /* 3D PERSPECTIVE */
+            perspective: 1200px;
+        }
+
+        /* Animated Header */
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.8rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #38bdf8 0%, #22c55e 50%, #facc15 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -2px;
+            text-transform: uppercase;
+            text-shadow: 0 0 40px rgba(56, 189, 248, 0.3);
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #64748b;
+            margin-bottom: 40px;
+            font-size: 1rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+
+        /* Search Section */
+        .search-section {
+            text-align: center;
+            margin-bottom: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .search-box {
+            position: relative;
+            display: inline-block;
+        }
+
+        .search-box input {
+            padding: 16px 24px;
+            width: 400px;
+            border-radius: 20px;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(12px);
+            color: #e2e8f0;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+
+        .search-box input::placeholder {
+            color: #64748b;
+        }
+
+        .search-box input:focus {
+            border-color: #38bdf8;
+            box-shadow: 0 0 30px rgba(56, 189, 248, 0.2), 0 4px 20px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .btn {
+            padding: 16px 32px;
+            border: none;
+            border-radius: 16px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%);
+            color: #0f172a;
+            box-shadow: 0 4px 20px rgba(56, 189, 248, 0.3), 0 0 0 1px rgba(56, 189, 248, 0.2);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(56, 189, 248, 0.5), 0 0 0 1px rgba(56, 189, 248, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(100, 116, 139, 0.2);
+            color: #e2e8f0;
+            border: 1px solid rgba(100, 116, 139, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(100, 116, 139, 0.4);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        /* ========== AI RECOMMENDATION CARD ========== */
+        .ai-recommendation-section {
+            width: 95%;
+            margin: 40px auto 50px auto;
+            padding: 0;
+            position: relative;
+            border-radius: 32px;
+            overflow: hidden;
+            transform-style: preserve-3d;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .ai-recommendation-section:hover {
+            transform: translateY(-8px) scale(1.01);
+            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.6), 0 0 60px rgba(139, 92, 246, 0.2);
+        }
+
+        .ai-recommendation-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(236, 72, 153, 0.15) 50%, rgba(56, 189, 248, 0.15) 100%);
+            border-radius: 32px;
+            z-index: -1;
+            animation: aiGlow 4s ease-in-out infinite;
+        }
+
+        @keyframes aiGlow {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        .ai-recommendation-inner {
+            background: linear-gradient(145deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            border-radius: 32px;
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+
+        .ai-recommendation-inner::after {
+            content: '';
+            position: absolute;
+            top: -100px;
+            right: -100px;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, transparent 70%);
+            pointer-events: none;
+            animation: orbFloat 8s ease-in-out infinite;
+        }
+
+        @keyframes orbFloat {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(-30px, 30px) scale(1.2); }
+        }
+
+        .ai-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .ai-title-group {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .ai-icon-wrapper {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            box-shadow: 0 10px 40px rgba(139, 92, 246, 0.4);
+            animation: aiPulse 2s infinite;
+            flex-shrink: 0;
+        }
+
+        @keyframes aiPulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 10px 40px rgba(139, 92, 246, 0.4); }
+            50% { transform: scale(1.05); box-shadow: 0 15px 50px rgba(139, 92, 246, 0.6); }
+        }
+
+        .ai-title-text h2 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #f8fafc;
+            letter-spacing: -0.5px;
+            margin-bottom: 6px;
+        }
+
+        .ai-title-text p {
+            color: #94a3b8;
+            font-size: 0.95rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .ai-badge-main {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(236, 72, 153, 0.2));
+            color: #c084fc;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 700;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .ai-stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .ai-stat-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 24px;
+            text-align: center;
+            transition: all 0.4s ease;
+        }
+
+        .ai-stat-item:hover {
+            background: rgba(255, 255, 255, 0.06);
+            transform: translateY(-4px);
+            border-color: rgba(139, 92, 246, 0.2);
+        }
+
+        .ai-stat-icon {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .ai-stat-label {
+            color: #94a3b8;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .ai-stat-value {
+            font-size: 28px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #c084fc, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .ai-preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 30px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .ai-preview-card {
+            background: linear-gradient(145deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 24px;
+            text-align: center;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ai-preview-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--preview-color), transparent);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .ai-preview-card:hover::before { opacity: 1; }
+        .ai-preview-card:hover {
+            transform: translateY(-6px);
+            border-color: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .ai-preview-rank {
+            width: 45px;
+            height: 45px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 800;
+            color: white;
+            margin: 0 auto 12px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .ai-preview-name {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #f8fafc;
+            margin-bottom: 8px;
+        }
+
+        .ai-preview-score {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--preview-color);
+        }
+
+        .ai-preview-label {
+            font-size: 11px;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 4px;
+        }
+
+        .ai-preview-1 { --preview-color: #22c55e; }
+        .ai-preview-1 .ai-preview-rank { background: linear-gradient(135deg, #22c55e, #4ade80); }
+
+        .ai-preview-2 { --preview-color: #3b82f6; }
+        .ai-preview-2 .ai-preview-rank { background: linear-gradient(135deg, #3b82f6, #60a5fa); }
+
+        .ai-preview-3 { --preview-color: #8b5cf6; }
+        .ai-preview-3 .ai-preview-rank { background: linear-gradient(135deg, #8b5cf6, #a78bfa); }
+
+        .ai-preview-4 { --preview-color: #f59e0b; }
+        .ai-preview-4 .ai-preview-rank { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
+
+        .ai-preview-5 { --preview-color: #ec4899; }
+        .ai-preview-5 .ai-preview-rank { background: linear-gradient(135deg, #ec4899, #f472b6); }
+
+        .ai-cta {
+            display: flex;
+            justify-content: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .ai-cta-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            padding: 18px 40px;
+            background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+            color: white;
+            border-radius: 20px;
+            text-decoration: none;
+            font-size: 1.1rem;
+            font-weight: 700;
+            box-shadow: 0 8px 30px rgba(139, 92, 246, 0.4);
+            transition: all 0.4s ease;
+            border: none;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ai-cta-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .ai-cta-btn:hover::before {
+            left: 100%;
+        }
+
+        .ai-cta-btn:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 15px 50px rgba(139, 92, 246, 0.6);
+        }
+
+        /* ========== TOP SECTIONS (ROE, PROFIT, etc.) ========== */
+        .top-section {
+            width: 95%;
+            margin: 50px auto;
+            padding: 40px;
+            background: linear-gradient(145deg, rgba(30, 41, 59, 0.4) 0%, rgba(15, 23, 42, 0.6) 100%);
+            backdrop-filter: blur(20px);
+            border-radius: 32px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+
+        .top-section h2 {
+            text-align: center;
+            margin-bottom: 35px;
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #f8fafc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            letter-spacing: -0.5px;
+        }
+
+        .scores-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 24px;
+        }
+
+        /* 3D SCORE CARD */
+        .score-card {
+            background: linear-gradient(145deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.95) 100%);
+            padding: 32px 24px;
+            border-radius: 24px;
+            text-align: center;
+            border: 1px solid rgba(56, 189, 248, 0.1);
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.02);
+            /* 3D TRANSFORM */
+            transform-style: preserve-3d;
+        }
+
+        .score-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #38bdf8, #22c55e, #facc15);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .score-card:hover {
+            transform: translateY(-12px) scale(1.05) rotateX(10deg) rotateY(5deg);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), 0 0 40px rgba(56, 189, 248, 0.15), 0 0 0 1px rgba(56, 189, 248, 0.2);
+            border-color: rgba(56, 189, 248, 0.3);
+        }
+
+        .score-card:hover::before {
+            opacity: 1;
+        }
+
+        .score-card h3 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #f8fafc;
+            margin-bottom: 16px;
+            letter-spacing: -0.3px;
+            line-height: 1.3;
+        }
+
+        .score-value {
+            font-size: 2.6rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #22c55e 0%, #4ade80 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: block;
+            margin: 12px 0;
+            letter-spacing: -1px;
+        }
+
+        .score-label {
+            color: #facc15;
+            font-weight: 700;
+            font-size: 0.85rem;
+            margin-top: 14px;
+            padding: 8px 18px;
+            background: rgba(250, 204, 21, 0.1);
+            border-radius: 20px;
+            display: inline-block;
+            border: 1px solid rgba(250, 204, 21, 0.2);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* TOP ROE / PROFIT SPECIFIC */
+        .roe-value {
+            background: linear-gradient(135deg, #38bdf8 0%, #7dd3fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .profit-value {
+            background: linear-gradient(135deg, #f472b6 0%, #fb7185 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .sector-tag {
+            color: #94a3b8;
+            font-size: 0.85rem;
+            margin-top: 8px;
+            font-weight: 500;
+        }
+
+        /* Action Buttons */
+        .actions {
+            text-align: center;
+            margin: 40px 0;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 14px;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            color: white;
+            box-shadow: 0 4px 20px rgba(34, 197, 94, 0.3), 0 0 0 1px rgba(34, 197, 94, 0.2);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(34, 197, 94, 0.5), 0 0 0 1px rgba(34, 197, 94, 0.3);
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%);
+            color: #0f172a;
+            box-shadow: 0 4px 20px rgba(56, 189, 248, 0.3), 0 0 0 1px rgba(56, 189, 248, 0.2);
+        }
+
+        .btn-info:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(56, 189, 248, 0.5), 0 0 0 1px rgba(56, 189, 248, 0.3);
+        }
+
+        /* ========== COMPANY CARDS — 3D GRID ========== */
+        .companies-section {
+            margin-top: 50px;
+        }
+
+        .companies-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 28px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* 3D COMPANY CARD */
+        .company-card {
+            background: linear-gradient(145deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.9) 100%);
+            padding: 32px;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.02);
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            /* 3D TRANSFORM */
+            transform-style: preserve-3d;
+        }
+
+        .company-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #38bdf8, #22c55e);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .company-card::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(56, 189, 248, 0.06) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .company-card:hover {
+            transform: translateY(-10px) scale(1.03) rotateX(8deg) rotateY(4deg);
+            box-shadow: 0 30px 70px rgba(0, 0, 0, 0.6), 0 0 50px rgba(56, 189, 248, 0.1), 0 0 0 1px rgba(56, 189, 248, 0.15);
+            border-color: rgba(56, 189, 248, 0.2);
+        }
+
+        .company-card:hover::before {
+            opacity: 1;
+        }
+
+        .company-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .company-icon {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.2) 0%, rgba(34, 197, 94, 0.2) 100%);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            flex-shrink: 0;
+            border: 1px solid rgba(56, 189, 248, 0.15);
+        }
+
+        .company-name {
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: #f8fafc;
+            letter-spacing: -0.5px;
+            line-height: 1.2;
+        }
+
+        .company-metrics {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .metric-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 18px;
+            background: rgba(56, 189, 248, 0.08);
+            border: 1px solid rgba(56, 189, 248, 0.15);
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #38bdf8;
+            transition: all 0.3s ease;
+        }
+
+        .metric-badge:hover {
+            background: rgba(56, 189, 248, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .metric-badge.roce {
+            background: rgba(34, 197, 94, 0.08);
+            border-color: rgba(34, 197, 94, 0.15);
+            color: #22c55e;
+        }
+
+        .metric-badge.roce:hover {
+            background: rgba(34, 197, 94, 0.15);
+        }
+
+        .metric-value {
+            font-weight: 800;
+            font-size: 1.1rem;
+        }
+
+        .company-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .btn-action {
+            flex: 1;
+            padding: 14px 20px;
+            border-radius: 14px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-view {
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.15) 0%, rgba(56, 189, 248, 0.08) 100%);
+            color: #38bdf8;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+        }
+
+        .btn-view:hover {
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.3) 0%, rgba(56, 189, 248, 0.15) 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(56, 189, 248, 0.2);
+            color: #7dd3fc;
+        }
+
+        .btn-website {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(34, 197, 94, 0.08) 100%);
+            color: #22c55e;
+            border: 1px solid rgba(34, 197, 94, 0.2);
+        }
+
+        .btn-website:hover {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.3) 0%, rgba(34, 197, 94, 0.15) 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(34, 197, 94, 0.2);
+            color: #4ade80;
+        }
+
+        a {
+            color: #38bdf8;
+            text-decoration: none;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .score-card {
+            animation: fadeInUp 0.6s ease forwards;
+            animation-delay: calc(var(--i, 0) * 0.1s);
+        }
+
+        .company-card {
+            animation: fadeInUp 0.7s ease forwards;
+            animation-delay: calc(var(--i, 0) * 0.08s);
+        }
+
+        /* AI Section Animation */
+        .ai-recommendation-section {
+            animation: fadeInUp 0.8s ease forwards;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .search-box input {
+                width: 100%;
+                max-width: 300px;
+            }
+
+            .companies-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .company-card {
+                padding: 24px;
+            }
+
+            .ai-stats-row {
+                grid-template-columns: 1fr;
+            }
+
+            .ai-header {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+
+            .ai-preview-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+<base target="_blank">
+</head>
+
+<body>
+
+    <h1>NIFTY100 FINANCIAL ANALYTICS</h1>
+    <p class="subtitle">AI-Powered Market Intelligence</p>
+
+    <form method="get" class="search-section">
+        <div class="search-box">
+            <input type="text" name="q" placeholder="🔍 Search company..." value="{{ query|default:'' }}">
+        </div>
+        <button type="submit" class="btn btn-primary">🔍 Search</button>
+        <a href="/" class="btn btn-secondary">🏠 Home</a>
+    </form>
+
+    <!-- ========== AI RECOMMENDATION ENGINE SECTION ========== -->
+    <div class="ai-recommendation-section">
+        <div class="ai-recommendation-inner">
+            <div class="ai-header">
+                <div class="ai-title-group">
+                    <div class="ai-icon-wrapper">🤖</div>
+                    <div class="ai-title-text">
+                        <h2>AI Recommendation Engine</h2>
+                        <p>Machine Learning Based Stock Scoring</p>
+                    </div>
+                </div>
+                <div class="ai-badge-main">
+                    <span>⚡</span> ML Powered
+                </div>
+            </div>
+
+            <!-- Stats Row -->
+            <div class="ai-stats-row">
+                <div class="ai-stat-item">
+                    <div class="ai-stat-icon">📊</div>
+                    <div class="ai-stat-label">Total Analyzed</div>
+                    <div class="ai-stat-value">{{ total_companies|default:"91" }}</div>
+                </div>
+                <div class="ai-stat-item">
+                    <div class="ai-stat-icon">🎯</div>
+                    <div class="ai-stat-label">Average Score</div>
+                    <div class="ai-stat-value">{{ avg_score|default:"15.68" }}</div>
+                </div>
+                <div class="ai-stat-item">
+                    <div class="ai-stat-icon">🏆</div>
+                    <div class="ai-stat-label">Top Picks</div>
+                    <div class="ai-stat-value">10</div>
+                </div>
+            </div>
+
+            <!-- Top 5 Preview -->
+            <div class="ai-preview-grid">
+                {% if top_recommendations %}
+                    {% for rec in top_recommendations|slice:":5" %}
+                    <div class="ai-preview-card ai-preview-{{ forloop.counter }}">
+                        <div class="ai-preview-rank">{{ forloop.counter }}</div>
+                        <div class="ai-preview-name">{{ rec.company.company_name|default:"Company" }}</div>
+                        <div class="ai-preview-score">{{ rec.score|default:"0" }}</div>
+                        <div class="ai-preview-label">ML Score</div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="ai-preview-card ai-preview-1">
+                        <div class="ai-preview-rank">1</div>
+                        <div class="ai-preview-name">Trent Ltd</div>
+                        <div class="ai-preview-score">22.25</div>
+                        <div class="ai-preview-label">ML Score</div>
+                    </div>
+                    <div class="ai-preview-card ai-preview-2">
+                        <div class="ai-preview-rank">2</div>
+                        <div class="ai-preview-name">Dr Reddys Labs</div>
+                        <div class="ai-preview-score">22.0</div>
+                        <div class="ai-preview-label">ML Score</div>
+                    </div>
+                    <div class="ai-preview-card ai-preview-3">
+                        <div class="ai-preview-rank">3</div>
+                        <div class="ai-preview-name">Top Pick #3</div>
+                        <div class="ai-preview-score">--</div>
+                        <div class="ai-preview-label">ML Score</div>
+                    </div>
+                    <div class="ai-preview-card ai-preview-4">
+                        <div class="ai-preview-rank">4</div>
+                        <div class="ai-preview-name">Top Pick #4</div>
+                        <div class="ai-preview-score">--</div>
+                        <div class="ai-preview-label">ML Score</div>
+                    </div>
+                    <div class="ai-preview-card ai-preview-5">
+                        <div class="ai-preview-rank">5</div>
+                        <div class="ai-preview-name">Top Pick #5</div>
+                        <div class="ai-preview-score">--</div>
+                        <div class="ai-preview-label">ML Score</div>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- CTA Button -->
+            <div class="ai-cta">
+                <a href="{% url 'ai_recommendations' %}" class="ai-cta-btn">
+                    <span>🚀</span> View Full AI Analysis
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== TOP ROE COMPANIES ========== -->
+    {% if top_roe %}
+    <div class="top-section">
+        <h2>⚡ Top ROE Companies</h2>
+        <div class="scores-grid">
+            {% for company in top_roe %}
+            <div class="score-card" style="--i: {{ forloop.counter0 }};">
+                <h3>{{ company.company_name }}</h3>
+                <p style="color: #94a3b8; font-size: 0.9rem; margin-bottom: 8px;">Return on Equity</p>
+                <span class="score-value roe-value">{{ company.roe_percentage }}%</span>
+                <div class="sector-tag">{{ company.sector|default:"Other" }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ========== TOP PROFIT COMPANIES ========== -->
+    {% if top_profit %}
+    <div class="top-section">
+        <h2>💰 Top Profit Companies</h2>
+        <div class="scores-grid">
+            {% for company in top_profit %}
+            <div class="score-card" style="--i: {{ forloop.counter0 }};">
+                <h3>{{ company.company_name }}</h3>
+                <p style="color: #94a3b8; font-size: 0.9rem; margin-bottom: 8px;">Net Profit</p>
+                <span class="score-value profit-value">{{ company.latest_profit|default:company.net_profit }}</span>
+                <div class="sector-tag">{{ company.year|default:"TTM" }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ========== TOP ML RANKED COMPANIES ========== -->
+    {% if top_scores %}
+    <div class="top-section">
+        <h2>🤖 Top ML Ranked Companies</h2>
+        <div class="scores-grid">
+            {% for score in top_scores %}
+            <div class="score-card" style="--i: {{ forloop.counter0 }};">
+                <h3>{{ score.company_name }}</h3>
+                <p style="color: #94a3b8; font-size: 0.9rem; margin-bottom: 8px;">Overall Score</p>
+                <span class="score-value">{{ score.overall_score }}</span>
+                <div class="score-label">{{ score.health_label }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Action Buttons -->
+    <div class="actions">
+        <a href="/ml-scores/" class="btn btn-success">📊 ML Health Scores</a>
+        <a href="/api-docs/" class="btn btn-info">📖 API Documentation</a>
+        <a href="/sectors/" style="
+padding:12px 22px;
+background:#f59e0b;
+color:white;
+border-radius:10px;
+text-decoration:none;
+font-weight:bold;
+margin-left:10px;">
+            Sector Dashboard
+        </a>
+        <a href="/compare/" style="
+    padding:12px 22px;
+    background:#f97316;
+    color:white;
+    border-radius:10px;
+    text-decoration:none;
+    font-weight:bold;
+    margin-left:10px;">
+            Compare Companies
+        </a>
+    </div>
+
+    <!-- ========== ALL COMPANIES GRID ========== -->
+    <div class="companies-section">
+        <div class="companies-grid">
+            {% for company in companies %}
+            <div class="company-card" style="--i: {{ forloop.counter0 }};">
+                <div class="company-header">
+                    <div class="company-icon">🏢</div>
+                    <div class="company-name">{{ company.company_name }}</div>
+                </div>
+
+                <div class="company-metrics">
+                    <div class="metric-badge">
+                        ROE <span class="metric-value">{{ company.roe_percentage }}%</span>
+                    </div>
+                    <div class="metric-badge roce">
+                        ROCE <span class="metric-value">{{ company.roce_percentage }}%</span>
+                    </div>
+                </div>
+
+                <div class="company-actions">
+                    <a href="{% url 'company_detail' company.id %}" class="btn-action btn-view">👁️ View Details</a>
+                    <a href="{{ company.website }}" target="_blank" class="btn-action btn-website">🌐 Visit Website</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+</body>
+
+</html>

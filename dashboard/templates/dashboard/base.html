@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{% block title %}Stock Analytics{% endblock %}</title>
+    <style>
+        /* Common CSS for all pages */
+        body { margin: 0; background: #0b0f19; color: white; font-family: Arial; }
+        /* Navbar CSS */
+        /* Messages CSS */
+    </style>
+</head>
+<body>
+    <!-- Navbar with Auth Links -->
+    <nav>
+        <a href="/">Home</a>
+        <a href="/ml-scores/">ML Scores</a>
+        <a href="/api/docs/">API Docs</a>
+        
+        <!-- 👇 YAHAN auth-nav add karna (Step 7 wala code) -->
+        {% if user.is_authenticated %}
+            <a href="/dashboard/">Dashboard</a>
+            <a href="/logout/">Logout ({{ user.username }})</a>
+        {% else %}
+            <a href="/login/">Sign In</a>
+            <a href="/register/">Get Started</a>
+        {% endif %}
+    </nav>
+    
+    <!-- Messages show karne ke liye -->
+    {% if messages %}
+        {% for message in messages %}
+            <div>{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+    
+    <!-- Main Content -->
+    <div>
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>

@@ -1,0 +1,1033 @@
+
+html_content = '''<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sector Analytics Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        * { font-family: 'Inter', sans-serif; }
+        
+        body {
+            background: linear-gradient(135deg, #0a0e27 0%, #0f172a 25%, #1a0a2e 50%, #0f172a 75%, #0a0e27 100%);
+            background-size: 400% 400%;
+            animation: bgShift 15s ease infinite;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        @keyframes bgShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .glass-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(148, 163, 184, 0.2);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+        
+        .sector-card {
+            background: linear-gradient(145deg, rgba(30,41,59,0.9), rgba(15,23,42,0.95));
+            border: 1px solid rgba(148,163,184,0.08);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            transform-style: preserve-3d;
+        }
+        
+        .sector-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.03), transparent);
+            transition: left 0.7s ease;
+        }
+        
+        .sector-card:hover::before {
+            left: 100%;
+        }
+        
+        .sector-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--sector-color), transparent);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .sector-card:hover::after {
+            opacity: 1;
+        }
+        
+        .sector-card:hover {
+            transform: translateY(-8px) rotateX(3deg) scale(1.02);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.4), 0 0 40px rgba(56,189,248,0.1);
+            border-color: rgba(148,163,184,0.2);
+        }
+        
+        .metric-badge {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .animate-fade-in {
+            animation: fadeIn 0.6s ease-out forwards;
+        }
+        
+        .animate-slide-up {
+            animation: slideUp 0.5s ease-out forwards;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .filter-btn {
+            transition: all 0.3s;
+            position: relative;
+        }
+        
+        .filter-btn.active {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            color: white;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+        }
+        
+        .filter-btn:not(.active):hover {
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .trend-up { color: #10b981; }
+        .trend-down { color: #ef4444; }
+        
+        .heatmap-cell {
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .heatmap-cell:hover {
+            transform: scale(1.15);
+            z-index: 10;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        
+        .top-sector-glow {
+            box-shadow: 0 0 30px rgba(251, 191, 36, 0.3), 0 0 60px rgba(251, 191, 36, 0.1);
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+        
+        .stat-counter {
+            font-variant-numeric: tabular-nums;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #38bdf8, #818cf8, #c084fc, #f472b6);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientShift 4s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .glow-orb {
+            position: fixed;
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.15;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .glow-orb-1 {
+            background: #38bdf8;
+            top: -200px;
+            left: -200px;
+            animation: orbFloat1 20s ease-in-out infinite;
+        }
+
+        .glow-orb-2 {
+            background: #c084fc;
+            bottom: -200px;
+            right: -200px;
+            animation: orbFloat2 25s ease-in-out infinite;
+        }
+
+        @keyframes orbFloat1 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(100px, 50px) scale(1.2); }
+        }
+
+        @keyframes orbFloat2 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(-80px, -60px) scale(1.1); }
+        }
+
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(56, 189, 248, 0.3);
+            border-radius: 50%;
+            animation: floatUp linear infinite;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(100vh) scale(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-10vh) scale(1.5); opacity: 0; }
+        }
+
+        /* Pulse animation for live indicator */
+        .live-dot {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+    </style>
+</head>
+<body class="text-slate-200">
+    
+    <div class="glow-orb glow-orb-1"></div>
+    <div class="glow-orb glow-orb-2"></div>
+    <div class="particles" id="particles"></div>
+
+    <!-- Header -->
+    <header class="sticky top-0 z-50 glass-card border-b border-slate-700/50">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                    <i class="fas fa-chart-line text-white text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold gradient-text">
+                        Stock Analytics Pro
+                    </h1>
+                    <p class="text-xs text-slate-400">Sector Intelligence Dashboard</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="hidden md:flex items-center gap-2 text-sm text-slate-400">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 live-dot"></span>
+                    <span id="live-time">--:--:--</span>
+                </div>
+                <button class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 transition text-sm">
+                    <i class="fas fa-download mr-2"></i>Export
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-6 space-y-6 relative z-10">
+        
+        <!-- Top Stats Row -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="glass-card rounded-2xl p-5 animate-slide-up" style="animation-delay: 0.1s">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-slate-400 text-sm">Total Sectors</span>
+                    <div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                        <i class="fas fa-layer-group text-blue-400 text-sm"></i>
+                    </div>
+                </div>
+                <div class="text-3xl font-bold text-white stat-counter" id="total-sectors">0</div>
+                <div class="text-xs text-emerald-400 mt-1"><i class="fas fa-arrow-up mr-1"></i>Active markets</div>
+            </div>
+            
+            <div class="glass-card rounded-2xl p-5 animate-slide-up" style="animation-delay: 0.2s">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-slate-400 text-sm">Total Companies</span>
+                    <div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                        <i class="fas fa-building text-purple-400 text-sm"></i>
+                    </div>
+                </div>
+                <div class="text-3xl font-bold text-white stat-counter" id="total-companies">0</div>
+                <div class="text-xs text-emerald-400 mt-1"><i class="fas fa-arrow-up mr-1"></i>Across all sectors</div>
+            </div>
+            
+            <div class="glass-card rounded-2xl p-5 animate-slide-up" style="animation-delay: 0.3s">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-slate-400 text-sm">Avg Market ROE</span>
+                    <div class="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+                        <i class="fas fa-percentage text-emerald-400 text-sm"></i>
+                    </div>
+                </div>
+                <div class="text-3xl font-bold text-white stat-counter" id="avg-roe">0%</div>
+                <div class="text-xs text-emerald-400 mt-1"><i class="fas fa-arrow-up mr-1"></i>Market average</div>
+            </div>
+            
+            <div class="glass-card rounded-2xl p-5 animate-slide-up relative overflow-hidden" style="animation-delay: 0.4s">
+                <div class="absolute top-0 right-0 w-24 h-24 bg-amber-500/10 rounded-full -mr-8 -mt-8"></div>
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-slate-400 text-sm">Top Performing Sector</span>
+                    <div class="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center">
+                        <i class="fas fa-crown text-amber-400 text-sm"></i>
+                    </div>
+                </div>
+                <div class="text-xl font-bold text-amber-400" id="top-sector-name">--</div>
+                <div class="text-xs text-slate-400 mt-1">Highest avg ROCE</div>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Sector Distribution Chart -->
+            <div class="glass-card rounded-2xl p-6 animate-slide-up" style="animation-delay: 0.5s">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-white">
+                        <i class="fas fa-chart-pie mr-2 text-blue-400"></i>Sector Distribution
+                    </h3>
+                    <span class="text-xs text-slate-400">Company count by sector</span>
+                </div>
+                <div class="chart-container">
+                    <canvas id="sectorDistChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- ROE vs ROCE Comparison -->
+            <div class="glass-card rounded-2xl p-6 animate-slide-up" style="animation-delay: 0.6s">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-white">
+                        <i class="fas fa-chart-bar mr-2 text-purple-400"></i>ROE vs ROCE by Sector
+                    </h3>
+                    <span class="text-xs text-slate-400">Profitability metrics</span>
+                </div>
+                <div class="chart-container">
+                    <canvas id="roeRoceChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sector Filter Bar -->
+        <div class="glass-card rounded-2xl p-4 animate-slide-up" style="animation-delay: 0.7s">
+            <div class="flex items-center gap-3 flex-wrap">
+                <span class="text-sm font-medium text-slate-400 mr-2">
+                    <i class="fas fa-filter mr-2"></i>Filter Sectors:
+                </span>
+                <button class="filter-btn active px-4 py-2 rounded-lg text-sm font-medium" data-filter="all">
+                    All Sectors
+                </button>
+                <div id="sector-filters" class="flex gap-2 flex-wrap">
+                    <!-- Dynamic filters -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Sector Cards Grid -->
+        <div class="space-y-4">
+            <div class="flex items-center justify-between">
+                <h2 class="text-xl font-bold text-white">
+                    <i class="fas fa-th-large mr-2 text-emerald-400"></i>Sector Analytics Cards
+                </h2>
+                <div class="flex gap-2">
+                    <button id="view-grid" class="p-2 rounded-lg bg-slate-800 text-blue-400 hover:bg-slate-700 transition">
+                        <i class="fas fa-th"></i>
+                    </button>
+                    <button id="view-list" class="p-2 rounded-lg bg-slate-800/50 text-slate-400 hover:bg-slate-700 transition">
+                        <i class="fas fa-list"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div id="sector-cards-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <!-- Dynamic sector cards -->
+            </div>
+        </div>
+
+        <!-- Sector Heatmap -->
+        <div class="glass-card rounded-2xl p-6 animate-slide-up" style="animation-delay: 0.8s">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-lg font-semibold text-white">
+                    <i class="fas fa-fire mr-2 text-orange-400"></i>Sector Performance Heatmap
+                </h3>
+                <div class="flex items-center gap-3 text-xs">
+                    <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-emerald-500"></span> High</span>
+                    <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-yellow-500"></span> Medium</span>
+                    <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-red-500"></span> Low</span>
+                </div>
+            </div>
+            <div id="heatmap-container" class="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
+                <!-- Dynamic heatmap -->
+            </div>
+        </div>
+
+        <!-- Detailed Sector Table -->
+        <div class="glass-card rounded-2xl p-6 animate-slide-up" style="animation-delay: 0.9s">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-white">
+                    <i class="fas fa-table mr-2 text-cyan-400"></i>Sector Performance Table
+                </h3>
+                <div class="flex gap-2">
+                    <input type="text" id="table-search" placeholder="Search sector..." 
+                        class="px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm focus:outline-none focus:border-blue-500 text-white">
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-slate-700 text-slate-400">
+                            <th class="text-left py-3 px-4 cursor-pointer hover:text-white transition" onclick="sortTable('name')">
+                                Sector <i class="fas fa-sort ml-1"></i>
+                            </th>
+                            <th class="text-center py-3 px-4 cursor-pointer hover:text-white transition" onclick="sortTable('companies')">
+                                Companies <i class="fas fa-sort ml-1"></i>
+                            </th>
+                            <th class="text-center py-3 px-4 cursor-pointer hover:text-white transition" onclick="sortTable('avgRoe')">
+                                Avg ROE <i class="fas fa-sort ml-1"></i>
+                            </th>
+                            <th class="text-center py-3 px-4 cursor-pointer hover:text-white transition" onclick="sortTable('avgRoce')">
+                                Avg ROCE <i class="fas fa-sort ml-1"></i>
+                            </th>
+                            <th class="text-center py-3 px-4 cursor-pointer hover:text-white transition" onclick="sortTable('marketCap')">
+                                Market Cap <i class="fas fa-sort ml-1"></i>
+                            </th>
+                            <th class="text-center py-3 px-4">Performance</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sector-table-body">
+                        <!-- Dynamic table rows -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // ===== DATA =====
+        const sectorData = [
+            {
+                name: "Technology",
+                companies: 42,
+                avgRoe: 24.5,
+                avgRoce: 28.3,
+                marketCap: 450000,
+                growth: 18.2,
+                color: "#3b82f6",
+                icon: "fa-microchip",
+                topCompanies: ["TCS", "Infosys", "Wipro"],
+                trend: "up"
+            },
+            {
+                name: "Banking & Finance",
+                companies: 38,
+                avgRoe: 16.8,
+                avgRoce: 14.2,
+                marketCap: 380000,
+                growth: 12.5,
+                color: "#8b5cf6",
+                icon: "fa-university",
+                topCompanies: ["HDFC Bank", "ICICI Bank", "SBI"],
+                trend: "up"
+            },
+            {
+                name: "Pharmaceuticals",
+                companies: 28,
+                avgRoe: 19.2,
+                avgRoce: 22.1,
+                marketCap: 220000,
+                growth: 15.8,
+                color: "#10b981",
+                icon: "fa-pills",
+                topCompanies: ["Sun Pharma", "Dr Reddy", "Cipla"],
+                trend: "up"
+            },
+            {
+                name: "Automobile",
+                companies: 22,
+                avgRoe: 14.5,
+                avgRoce: 16.8,
+                marketCap: 180000,
+                growth: 22.4,
+                color: "#f59e0b",
+                icon: "fa-car",
+                topCompanies: ["Maruti", "Tata Motors", "M&M"],
+                trend: "up"
+            },
+            {
+                name: "FMCG",
+                companies: 18,
+                avgRoe: 26.3,
+                avgRoce: 30.5,
+                marketCap: 250000,
+                growth: 9.8,
+                color: "#ec4899",
+                icon: "fa-shopping-cart",
+                topCompanies: ["HUL", "ITC", "Nestle"],
+                trend: "stable"
+            },
+            {
+                name: "Energy & Oil",
+                companies: 15,
+                avgRoe: 12.1,
+                avgRoce: 13.5,
+                marketCap: 320000,
+                growth: 8.5,
+                color: "#ef4444",
+                icon: "fa-gas-pump",
+                topCompanies: ["Reliance", "ONGC", "IOC"],
+                trend: "stable"
+            },
+            {
+                name: "Real Estate",
+                companies: 20,
+                avgRoe: 11.8,
+                avgRoce: 12.4,
+                marketCap: 95000,
+                growth: 25.6,
+                color: "#6366f1",
+                icon: "fa-building",
+                topCompanies: ["DLF", "Oberoi", "Godrej"],
+                trend: "up"
+            },
+            {
+                name: "Telecom",
+                companies: 8,
+                avgRoe: 8.5,
+                avgRoce: 10.2,
+                marketCap: 280000,
+                growth: 5.2,
+                color: "#06b6d4",
+                icon: "fa-signal",
+                topCompanies: ["Airtel", "Jio", "Vodafone"],
+                trend: "stable"
+            },
+            {
+                name: "Metals & Mining",
+                companies: 16,
+                avgRoe: 15.6,
+                avgRoce: 17.8,
+                marketCap: 140000,
+                growth: 19.3,
+                color: "#78716c",
+                icon: "fa-hammer",
+                topCompanies: ["Tata Steel", "Coal India", "Hindalco"],
+                trend: "up"
+            },
+            {
+                name: "Infrastructure",
+                companies: 24,
+                avgRoe: 13.2,
+                avgRoce: 14.6,
+                marketCap: 110000,
+                growth: 16.7,
+                color: "#84cc16",
+                icon: "fa-road",
+                topCompanies: ["L&T", "Adani Ent", "IRB"],
+                trend: "up"
+            },
+            {
+                name: "Chemicals",
+                companies: 14,
+                avgRoe: 18.4,
+                avgRoce: 20.1,
+                marketCap: 85000,
+                growth: 14.2,
+                color: "#14b8a6",
+                icon: "fa-flask",
+                topCompanies: ["UPL", "PI Ind", "Aarti"],
+                trend: "up"
+            },
+            {
+                name: "Textiles",
+                companies: 12,
+                avgRoe: 10.5,
+                avgRoce: 11.8,
+                marketCap: 45000,
+                growth: 7.3,
+                color: "#f97316",
+                icon: "fa-tshirt",
+                topCompanies: ["Arvind", "Page", "KPR"],
+                trend: "stable"
+            }
+        ];
+
+        let currentFilter = 'all';
+        let currentSort = { column: 'avgRoce', direction: 'desc' };
+        let sectorDistChart, roeRoceChart;
+
+        // ===== UTILITY FUNCTIONS =====
+        function formatNumber(num) {
+            if (num >= 100000) return (num / 100000).toFixed(1) + 'L Cr';
+            if (num >= 1000) return (num / 1000).toFixed(1) + 'K Cr';
+            return num + ' Cr';
+        }
+
+        function animateCounter(element, target, suffix = '', duration = 1500) {
+            const start = 0;
+            const increment = target / (duration / 16);
+            let current = start;
+            
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= target) {
+                    current = target;
+                    clearInterval(timer);
+                }
+                element.textContent = Math.round(current).toLocaleString() + suffix;
+            }, 16);
+        }
+
+        function getHeatmapColor(value, min, max) {
+            const ratio = (value - min) / (max - min);
+            if (ratio > 0.7) return 'bg-emerald-500';
+            if (ratio > 0.4) return 'bg-yellow-500';
+            return 'bg-red-500';
+        }
+
+        // ===== INITIALIZATION =====
+        function init() {
+            updateTopStats();
+            initCharts();
+            renderFilters();
+            renderSectorCards();
+            renderHeatmap();
+            renderTable();
+            startLiveClock();
+            initParticles();
+            init3DTilt();
+        }
+
+        function updateTopStats() {
+            const totalSectors = sectorData.length;
+            const totalCompanies = sectorData.reduce((sum, s) => sum + s.companies, 0);
+            const avgRoe = (sectorData.reduce((sum, s) => sum + s.avgRoe, 0) / totalSectors).toFixed(1);
+            const topSector = sectorData.reduce((max, s) => s.avgRoce > max.avgRoce ? s : max, sectorData[0]);
+
+            animateCounter(document.getElementById('total-sectors'), totalSectors);
+            animateCounter(document.getElementById('total-companies'), totalCompanies);
+            animateCounter(document.getElementById('avg-roe'), avgRoe, '%');
+            document.getElementById('top-sector-name').textContent = topSector.name;
+        }
+
+        // ===== PARTICLES =====
+        function initParticles() {
+            const container = document.getElementById('particles');
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDuration = (Math.random() * 15 + 10) + 's';
+                particle.style.animationDelay = Math.random() * 15 + 's';
+                particle.style.width = (Math.random() * 3 + 2) + 'px';
+                particle.style.height = particle.style.width;
+                container.appendChild(particle);
+            }
+        }
+
+        // ===== 3D TILT =====
+        function init3DTilt() {
+            document.querySelectorAll('.sector-card').forEach(card => {
+                card.addEventListener('mousemove', (e) => {
+                    const rect = card.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const centerX = rect.width / 2;
+                    const centerY = rect.height / 2;
+                    const rotateX = (y - centerY) / 25;
+                    const rotateY = (centerX - x) / 25;
+                    
+                    card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-8px) scale(1.02)`;
+                });
+                
+                card.addEventListener('mouseleave', () => {
+                    card.style.transform = '';
+                });
+            });
+        }
+
+        // ===== CHARTS =====
+        function initCharts() {
+            // Sector Distribution (Doughnut)
+            const ctx1 = document.getElementById('sectorDistChart').getContext('2d');
+            sectorDistChart = new Chart(ctx1, {
+                type: 'doughnut',
+                data: {
+                    labels: sectorData.map(s => s.name),
+                    datasets: [{
+                        data: sectorData.map(s => s.companies),
+                        backgroundColor: sectorData.map(s => s.color + 'cc'),
+                        borderColor: sectorData.map(s => s.color),
+                        borderWidth: 2,
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                color: '#94a3b8',
+                                font: { size: 11 },
+                                padding: 15,
+                                usePointStyle: true
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                            titleColor: '#fff',
+                            bodyColor: '#94a3b8',
+                            borderColor: 'rgba(148, 163, 184, 0.2)',
+                            borderWidth: 1,
+                            callbacks: {
+                                label: (ctx) => `${ctx.label}: ${ctx.raw} companies (${((ctx.raw/totalCompanies)*100).toFixed(1)}%)`
+                            }
+                        }
+                    },
+                    cutout: '65%'
+                }
+            });
+
+            // ROE vs ROCE (Bar)
+            const ctx2 = document.getElementById('roeRoceChart').getContext('2d');
+            roeRoceChart = new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: sectorData.map(s => s.name.split(' ')[0]),
+                    datasets: [
+                        {
+                            label: 'Avg ROE (%)',
+                            data: sectorData.map(s => s.avgRoe),
+                            backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                            borderColor: '#3b82f6',
+                            borderWidth: 1,
+                            borderRadius: 6
+                        },
+                        {
+                            label: 'Avg ROCE (%)',
+                            data: sectorData.map(s => s.avgRoce),
+                            backgroundColor: 'rgba(139, 92, 246, 0.7)',
+                            borderColor: '#8b5cf6',
+                            borderWidth: 1,
+                            borderRadius: 6
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: '#94a3b8', font: { size: 12 } }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                            titleColor: '#fff',
+                            bodyColor: '#94a3b8',
+                            borderColor: 'rgba(148, 163, 184, 0.2)',
+                            borderWidth: 1
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: '#94a3b8', font: { size: 10 } },
+                            grid: { color: 'rgba(148, 163, 184, 0.1)' }
+                        },
+                        y: {
+                            ticks: { color: '#94a3b8', callback: v => v + '%' },
+                            grid: { color: 'rgba(148, 163, 184, 0.1)' }
+                        }
+                    }
+                }
+            });
+        }
+
+        // ===== FILTERS =====
+        function renderFilters() {
+            const container = document.getElementById('sector-filters');
+            sectorData.forEach(sector => {
+                const btn = document.createElement('button');
+                btn.className = 'filter-btn px-3 py-2 rounded-lg text-sm font-medium text-slate-300';
+                btn.textContent = sector.name;
+                btn.dataset.filter = sector.name;
+                btn.onclick = () => setFilter(sector.name);
+                container.appendChild(btn);
+            });
+
+            document.querySelector('[data-filter="all"]').onclick = () => setFilter('all');
+        }
+
+        function setFilter(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.filter === filter);
+            });
+            renderSectorCards();
+            renderTable();
+            setTimeout(init3DTilt, 100);
+        }
+
+        // ===== SECTOR CARDS =====
+        function renderSectorCards() {
+            const container = document.getElementById('sector-cards-container');
+            container.innerHTML = '';
+            
+            const filtered = currentFilter === 'all' 
+                ? sectorData 
+                : sectorData.filter(s => s.name === currentFilter);
+
+            filtered.forEach((sector, index) => {
+                const isTop = sector.avgRoce === Math.max(...sectorData.map(s => s.avgRoce));
+                const card = document.createElement('div');
+                card.className = `sector-card rounded-2xl p-0 animate-slide-up ${isTop ? 'top-sector-glow' : ''}`;
+                card.style.cssText = `--sector-color: ${sector.color}; animation-delay: ${index * 0.1}s`;
+                
+                card.innerHTML = `
+                    <div class="p-6">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 rounded-xl flex items-center justify-center text-white text-xl" 
+                                     style="background: ${sector.color}20; color: ${sector.color}; border: 1px solid ${sector.color}40">
+                                    <i class="fas ${sector.icon}"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-white text-lg">${sector.name}</h4>
+                                    <span class="text-xs text-slate-400">${sector.companies} Companies</span>
+                                </div>
+                            </div>
+                            ${isTop ? '<span class="px-2 py-1 rounded-md bg-amber-500/20 text-amber-400 text-xs font-bold"><i class="fas fa-crown mr-1"></i>TOP</span>' : ''}
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-3 mb-4">
+                            <div class="metric-badge rounded-xl p-3">
+                                <div class="text-xs text-slate-400 mb-1">Avg ROE</div>
+                                <div class="text-lg font-bold" style="color: ${sector.color}">${sector.avgRoe}%</div>
+                            </div>
+                            <div class="metric-badge rounded-xl p-3">
+                                <div class="text-xs text-slate-400 mb-1">Avg ROCE</div>
+                                <div class="text-lg font-bold" style="color: ${sector.color}">${sector.avgRoce}%</div>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-2 mb-4">
+                            <div class="flex items-center justify-between text-xs">
+                                <span class="text-slate-400">Market Cap</span>
+                                <span class="text-white font-medium">${formatNumber(sector.marketCap)}</span>
+                            </div>
+                            <div class="flex items-center justify-between text-xs">
+                                <span class="text-slate-400">Growth</span>
+                                <span class="${sector.growth > 15 ? 'text-emerald-400' : 'text-yellow-400'} font-medium">
+                                    <i class="fas fa-arrow-${sector.growth > 10 ? 'up' : 'right'} mr-1"></i>${sector.growth}%
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="border-t border-slate-700/50 pt-3">
+                            <div class="text-xs text-slate-400 mb-2">Top Companies</div>
+                            <div class="flex flex-wrap gap-1">
+                                ${sector.topCompanies.map(c => `
+                                    <span class="px-2 py-1 rounded-md bg-slate-800 text-xs text-slate-300">${c}</span>
+                                `).join('')}
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <div class="flex justify-between text-xs text-slate-400 mb-1">
+                                <span>Efficiency</span>
+                                <span>${sector.avgRoce}%</span>
+                            </div>
+                            <div class="h-2 rounded-full bg-slate-800 overflow-hidden">
+                                <div class="h-full rounded-full transition-all duration-1000" 
+                                     style="width: 0%; background: linear-gradient(90deg, ${sector.color}, ${sector.color}80)"
+                                     data-width="${(sector.avgRoce / 35) * 100}"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                container.appendChild(card);
+            });
+
+            // Animate progress bars
+            setTimeout(() => {
+                document.querySelectorAll('[data-width]').forEach(bar => {
+                    bar.style.width = bar.dataset.width + '%';
+                });
+            }, 300);
+        }
+
+        // ===== HEATMAP =====
+        function renderHeatmap() {
+            const container = document.getElementById('heatmap-container');
+            container.innerHTML = '';
+            
+            const maxRoce = Math.max(...sectorData.map(s => s.avgRoce));
+            const minRoce = Math.min(...sectorData.map(s => s.avgRoce));
+            
+            sectorData.forEach(sector => {
+                const cell = document.createElement('div');
+                const colorClass = getHeatmapColor(sector.avgRoce, minRoce, maxRoce);
+                cell.className = `heatmap-cell ${colorClass} rounded-xl p-3 text-center`;
+                cell.innerHTML = `
+                    <div class="text-white font-bold text-sm">${sector.avgRoce}%</div>
+                    <div class="text-white/70 text-xs mt-1 truncate">${sector.name.split(' ')[0]}</div>
+                `;
+                cell.title = `${sector.name}: ROCE ${sector.avgRoce}%`;
+                container.appendChild(cell);
+            });
+        }
+
+        // ===== TABLE =====
+        function renderTable() {
+            const tbody = document.getElementById('sector-table-body');
+            tbody.innerHTML = '';
+            
+            let filtered = currentFilter === 'all' 
+                ? [...sectorData] 
+                : sectorData.filter(s => s.name === currentFilter);
+            
+            // Sort
+            filtered.sort((a, b) => {
+                let valA = a[currentSort.column];
+                let valB = b[currentSort.column];
+                if (typeof valA === 'string') {
+                    valA = valA.toLowerCase();
+                    valB = valB.toLowerCase();
+                }
+                if (currentSort.direction === 'asc') return valA > valB ? 1 : -1;
+                return valA < valB ? 1 : -1;
+            });
+            
+            filtered.forEach(sector => {
+                const tr = document.createElement('tr');
+                tr.className = 'border-b border-slate-800 hover:bg-slate-800/50 transition';
+                tr.innerHTML = `
+                    <td class="py-3 px-4">
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: ${sector.color}20">
+                                <i class="fas ${sector.icon}" style="color: ${sector.color}"></i>
+                            </div>
+                            <span class="font-medium text-white">${sector.name}</span>
+                        </div>
+                    </td>
+                    <td class="text-center py-3 px-4 text-slate-300">${sector.companies}</td>
+                    <td class="text-center py-3 px-4">
+                        <span class="px-2 py-1 rounded-md bg-blue-500/20 text-blue-400 font-medium">${sector.avgRoe}%</span>
+                    </td>
+                    <td class="text-center py-3 px-4">
+                        <span class="px-2 py-1 rounded-md bg-purple-500/20 text-purple-400 font-medium">${sector.avgRoce}%</span>
+                    </td>
+                    <td class="text-center py-3 px-4 text-slate-300">${formatNumber(sector.marketCap)}</td>
+                    <td class="text-center py-3 px-4">
+                        <div class="flex items-center justify-center gap-1">
+                            <span class="${sector.growth > 15 ? 'text-emerald-400' : 'text-yellow-400'} text-sm font-medium">
+                                ${sector.growth > 0 ? '+' : ''}${sector.growth}%
+                            </span>
+                            <i class="fas fa-arrow-${sector.growth > 10 ? 'up text-emerald-400' : 'right text-yellow-400'} text-xs"></i>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function sortTable(column) {
+            if (currentSort.column === column) {
+                currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSort.column = column;
+                currentSort.direction = 'desc';
+            }
+            renderTable();
+        }
+
+        // ===== LIVE CLOCK =====
+        function startLiveClock() {
+            setInterval(() => {
+                const now = new Date();
+                document.getElementById('live-time').textContent = 
+                    now.toLocaleTimeString('en-US', { hour12: false });
+            }, 1000);
+        }
+
+        // ===== SEARCH =====
+        document.getElementById('table-search').addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('#sector-table-body tr');
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(term) ? '' : 'none';
+            });
+        });
+
+        // ===== VIEW TOGGLE =====
+        document.getElementById('view-grid').addEventListener('click', function() {
+            this.classList.add('text-blue-400', 'bg-slate-800');
+            this.classList.remove('text-slate-400', 'bg-slate-800/50');
+            document.getElementById('view-list').classList.remove('text-blue-400', 'bg-slate-800');
+            document.getElementById('view-list').classList.add('text-slate-400', 'bg-slate-800/50');
+            document.getElementById('sector-cards-container').className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5';
+        });
+
+        document.getElementById('view-list').addEventListener('click', function() {
+            this.classList.add('text-blue-400', 'bg-slate-800');
+            this.classList.remove('text-slate-400', 'bg-slate-800/50');
+            document.getElementById('view-grid').classList.remove('text-blue-400', 'bg-slate-800');
+            document.getElementById('view-grid').classList.add('text-slate-400', 'bg-slate-800/50');
+            document.getElementById('sector-cards-container').className = 'grid grid-cols-1 gap-4';
+        });
+
+        // ===== INIT =====
+        const totalCompanies = sectorData.reduce((sum, s) => sum + s.companies, 0);
+        init();
+    </script>
+</body>
+</html>'''
+
+with open('/mnt/agents/output/sector_dashboard_fixed.html', 'w', encoding='utf-8') as f:
+    f.write(html_content)
+
+print("Fixed! No more code text on screen.")
+print(f"Size: {len(html_content)} chars")

@@ -27,7 +27,7 @@ urlpatterns = [
     path('recommendations/', views.recommendation_engine, name='recommendation_engine'),
     path('api/docs/', views.api_docs, name='api_docs'),
     
-    # ===== NEW AUTH URLs (ye add karo) =====
+    # 
     path('login/', views.user_login, name='login'),
     path('register/', views.user_register, name='register'),
     path('logout/', views.user_logout, name='logout'),

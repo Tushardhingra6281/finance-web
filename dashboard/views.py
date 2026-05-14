@@ -16,7 +16,7 @@ from django.db.models import Avg
 
 def company_list(request):
 
-    # ========== FIX: TOP ROE — Python mein filter ==========
+    
     all_companies = list(Companies.objects.all())
     top_roe_list = []
     for c in all_companies:
@@ -30,7 +30,7 @@ def company_list(request):
     top_roe_list.sort(reverse=True, key=lambda x: x[0])
     top_roe = [c for _, c in top_roe_list[:5]]
     
-        # ========== FIX: TOP PROFIT — Python mein filter + Company Name ==========
+
     all_profits = list(Profitandloss.objects.all())
     top_profit_list = []
     for p in all_profits:
